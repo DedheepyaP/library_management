@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "libro-api"
+version = "0.1.0"
+description = "Library Management System API"
+authors = ["Your Name <you@example.com>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.14"
+
+fastapi = ">=0.128.0,<0.129.0"
+uvicorn = { extras = ["standard"], version = ">=0.40.0,<0.41.0" }
+sqlalchemy = ">=2.0.45,<3.0.0"
+psycopg2-binary = ">=2.9.11,<3.0.0"
+alembic = ">=1.18.1,<2.0.0"
+python-dotenv = ">=1.2.1,<2.0.0"
+httpx = ">=0.28.1,<0.29.0"
+pydantic-settings = ">=2.12.0,<3.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=9.0.2,<10.0.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
