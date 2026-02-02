@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app import schemas, crud
-from app.db.database import get_db
+from app.db import get_db
 
 app = FastAPI(title="Libro Library API")
 
@@ -31,8 +31,12 @@ def read_books(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 
 
 @app.put("/books/{book_id}", response_model=schemas.Book)
-def update_book(book_id: int, book: schemas.BookCreate, db: Session = Depends(get_db)):
-    return crud.update_book(db, book_id, book)
+def update_book_endpoint(book_id: int, book: schemas.BookCreate, db: Session = Depends(get_db)):
+    try:
+        return crud.update_book(db, book_id, book)
+    except ValueError as e:
+        # Convert Python exception to proper HTTP response
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 
@@ -47,12 +51,21 @@ def delete_book(book_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/books/{book_id}/borrow", response_model=schemas.Loan)
-def borrow_book(
+def borrow_book_endpoint(
     book_id: int,
     request: schemas.BookBorrowRequest,
     db: Session = Depends(get_db)
 ):
-    return crud.borrow_book(db, book_id, request.user_id)
+    try:
+        return crud.borrow_book(db, book_id, request.user_id)
+    except ValueError as e:
+        if str(e) == "No available copies":
+            raise HTTPException(status_code=412, detail=str(e))  # Precondition Failed
+        elif str(e) == "Book not found" or str(e) == "User not found":
+            raise HTTPException(status_code=404, detail=str(e))
+        else:
+            raise HTTPException(status_code=400, detail=str(e))
+
 
 
 # User Endpoints
@@ -77,6 +90,10 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 
 # Loan Endpoints
 
+@app.post("/loans/{loan_id}/return", response_model=schemas.Loan)
+def return_book(loan_id: int, db: Session = Depends(get_db)):
+    return crud.return_book(db, loan_id)
+
 @app.get("/loans/", response_model=list[schemas.Loan])
 def read_loans(
     user_id: int | None = None,
@@ -97,6 +114,3 @@ def read_loan(loan_id: int, db: Session = Depends(get_db)):
     return loan
 
 
-@app.post("/loans/{loan_id}/return", response_model=schemas.Loan)
-def return_book(loan_id: int, db: Session = Depends(get_db)):
-    return crud.return_book(db, loan_id)

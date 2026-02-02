@@ -1,8 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from typing import Optional
-
-from pydantic import BaseModel,ConfigDict # EmailStr, 
+from pydantic import BaseModel,ConfigDict
 
 class BookBase(BaseModel):
     title: str
